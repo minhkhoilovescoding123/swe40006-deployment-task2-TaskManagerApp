@@ -1,0 +1,70 @@
+@model List<TaskManagerApp.Models.TaskItem>
+@using TaskManagerApp.Models
+@{
+    ViewData["Title"] = "Task Manager";
+}
+
+<h1>Task Manager</h1>
+<a asp-action="Create" class="btn btn-primary mb-3">+ Add Task</a>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No tasks yet. Click "Add Task" to create one.</p>
+}
+else
+{
+    <table class="table table-bordered align-middle">
+        <thead>
+            <tr>
+                <th style="width: 20%">Title</th>
+                <th style="width: 35%">Description</th>
+                <th style="width: 15%">Status</th>
+                <th style="width: 30%">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var task in Model)
+        {
+            string badgeClass = task.Status switch
+            {
+                TaskStatusType.NotStarted => "bg-secondary",
+                TaskStatusType.Ongoing => "bg-warning text-dark",
+                TaskStatusType.Complete => "bg-success",
+                TaskStatusType.Late => "bg-danger",
+                _ => "bg-secondary"
+            };
+
+            <tr>
+                <td>@task.Title</td>
+                <td>@task.Description</td>
+                <td><span class="badge @badgeClass">@task.Status</span></td>
+                <td>
+                    <form asp-action="UpdateStatus" asp-route-id="@task.Id" method="post" class="d-inline">
+                        <select name="status" class="form-select form-select-sm d-inline-block w-auto"
+                                onchange="this.form.submit()">
+                            @foreach (var s in Enum.GetValues(typeof(TaskStatusType)))
+                            {
+                                if (s.Equals(task.Status))
+                                {
+                                    <option value="@s" selected>@s</option>
+                                }
+                                else
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            }
+                        </select>
+                    </form>
+
+                    <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+
+                    <form asp-action="Delete" asp-route-id="@task.Id" method="post" class="d-inline"
+                          onsubmit="return confirm('Delete this task?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
